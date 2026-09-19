@@ -193,91 +193,11 @@ body {
 }
 
 /* ------------------------------------------------------------
-   Kontrol fade (input ms)
-   ------------------------------------------------------------ */
-.fade-controls {
-  display: flex;
-  justify-content: center;
-  align-items: stretch;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 22px;
-}
-
-.fade-field {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  padding: 8px 14px 8px 16px;
-  border-radius: 999px;
-
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--cream);
-
-  background: rgba(255, 248, 239, 0.18);
-  border: 1px solid rgba(255, 248, 239, 0.42);
-  backdrop-filter: blur(12px) saturate(1.2);
-  -webkit-backdrop-filter: blur(12px) saturate(1.2);
-
-  box-shadow: 0 10px 22px -14px rgba(50, 25, 10, 0.9);
-  cursor: text;
-  transition: border-color 0.25s ease, background 0.25s ease;
-}
-
-.fade-field:hover {
-  border-color: rgba(255, 248, 239, 0.7);
-  background: rgba(255, 248, 239, 0.26);
-}
-
-.fade-field > i {
-  font-size: 0.85rem;
-  opacity: 0.85;
-}
-
-.fade-field input {
-  width: 74px;
-  padding: 6px 8px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 248, 239, 0.6);
-  background: rgba(255, 250, 243, 0.92);
-  color: var(--brown-900);
-  font-weight: 800;
-  font-size: 0.88rem;
-  text-align: center;
-  outline: none;
-  font-family: inherit;
-
-  /* hilangkan spinner default */
-  -moz-appearance: textfield;
-  appearance: textfield;
-}
-
-.fade-field input::-webkit-outer-spin-button,
-.fade-field input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.fade-field input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(255, 184, 119, 0.32);
-}
-
-.fade-field em {
-  font-style: normal;
-  font-size: 0.7rem;
-  opacity: 0.75;
-  letter-spacing: 0.1em;
-}
-
-/* ------------------------------------------------------------
    Grid pad
    ------------------------------------------------------------ */
 .pad-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(228px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 22px;
 }
 
@@ -286,7 +206,7 @@ body {
    ------------------------------------------------------------ */
 .pad {
   position: relative;
-  padding: 26px 20px 24px;
+  padding: 24px 18px 22px;
   border-radius: var(--pad-radius);
   text-align: center;
   overflow: hidden;
@@ -348,16 +268,16 @@ body {
   align-items: center;
   justify-content: center;
   position: relative;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .pad-icon {
-  width: 62px;
-  height: 62px;
+  width: 58px;
+  height: 58px;
   display: grid;
   place-items: center;
   border-radius: 20px;
-  font-size: 1.55rem;
+  font-size: 1.45rem;
   color: var(--cream);
 
   background: linear-gradient(150deg, #b87749, #6d4023);
@@ -383,7 +303,7 @@ body {
 .pad-badge {
   position: absolute;
   top: -6px;
-  right: calc(50% - 62px);
+  right: calc(50% - 58px);
   min-width: 28px;
   padding: 3px 8px;
   border-radius: 999px;
@@ -405,7 +325,7 @@ body {
 
 /* --- Teks --- */
 .pad-title {
-  font-size: 1.12rem;
+  font-size: 1.08rem;
   font-weight: 700;
   color: var(--cream);
   letter-spacing: -0.01em;
@@ -413,8 +333,8 @@ body {
 }
 
 .pad-sub {
-  margin-top: 5px;
-  font-size: 0.74rem;
+  margin-top: 4px;
+  font-size: 0.7rem;
   letter-spacing: 0.04em;
   color: rgba(255, 248, 239, 0.72);
   word-break: break-all;
@@ -425,14 +345,160 @@ body {
   font-weight: 700;
 }
 
-/* --- Kontrol --- */
+/* ------------------------------------------------------------
+   Pengaturan per-pad: fade in / fade out
+   ------------------------------------------------------------ */
+.pad-settings {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.mini-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px 4px 10px;
+  border-radius: 999px;
+
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: rgba(255, 248, 239, 0.92);
+  text-transform: uppercase;
+
+  background: rgba(255, 248, 239, 0.16);
+  border: 1px solid rgba(255, 248, 239, 0.32);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  transition: border-color 0.22s ease, background 0.22s ease;
+}
+
+.mini-field:hover {
+  border-color: rgba(255, 248, 239, 0.6);
+  background: rgba(255, 248, 239, 0.24);
+}
+
+.mini-field > span {
+  opacity: 0.8;
+}
+
+.mini-field input {
+  width: 46px;
+  padding: 3px 4px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 248, 239, 0.55);
+  background: rgba(255, 250, 243, 0.94);
+  color: var(--brown-900);
+  font-weight: 800;
+  font-size: 0.7rem;
+  text-align: center;
+  outline: none;
+  font-family: inherit;
+  letter-spacing: 0;
+
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.mini-field input::-webkit-outer-spin-button,
+.mini-field input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.mini-field input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(255, 184, 119, 0.35);
+}
+
+.mini-field em {
+  font-style: normal;
+  font-size: 0.56rem;
+  opacity: 0.7;
+  letter-spacing: 0.06em;
+}
+
+/* ------------------------------------------------------------
+   Volume slider per-pad
+   ------------------------------------------------------------ */
+.pad-volume {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 12px;
+  padding: 0 6px;
+}
+
+.pad-volume > i {
+  font-size: 0.78rem;
+  color: rgba(255, 248, 239, 0.82);
+  flex-shrink: 0;
+  width: 14px;
+  text-align: center;
+}
+
+.volume-slider {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 248, 239, 0.28);
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: linear-gradient(140deg, #ffd9a8, #ffb877);
+  border: none;
+  box-shadow: 0 2px 6px -2px rgba(60, 30, 12, 0.95);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: linear-gradient(140deg, #ffd9a8, #ffb877);
+  border: none;
+  box-shadow: 0 2px 6px -2px rgba(60, 30, 12, 0.95);
+  cursor: pointer;
+}
+
+.volume-value {
+  font-size: 0.66rem;
+  font-weight: 800;
+  color: rgba(255, 248, 239, 0.92);
+  min-width: 36px;
+  text-align: right;
+  text-shadow: 0 1px 6px rgba(60, 30, 12, 0.5);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------
+   Kontrol play / pause / stop
+   ------------------------------------------------------------ */
 .pad-controls {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  height: 62px;
-  margin-top: 18px;
+  height: 60px;
+  margin-top: 16px;
 }
 
 .ctrl {
@@ -456,11 +522,10 @@ body {
   transform: scale(0.88);
 }
 
-/* Tombol play utama */
 .ctrl-play {
-  width: 58px;
-  height: 58px;
-  font-size: 1.22rem;
+  width: 56px;
+  height: 56px;
+  font-size: 1.2rem;
   background: linear-gradient(150deg, #a86a3d, #5a3520);
   box-shadow:
     0 14px 26px -10px rgba(45, 22, 9, 0.95),
@@ -472,12 +537,11 @@ body {
   transform: translateY(-2px) scale(1.05);
 }
 
-/* Tombol pause & stop — tersembunyi sampai suara berjalan */
 .ctrl-pause,
 .ctrl-stop {
-  width: 46px;
-  height: 46px;
-  font-size: 0.92rem;
+  width: 44px;
+  height: 44px;
+  font-size: 0.9rem;
   color: var(--brown-900);
   background: rgba(255, 250, 243, 0.4);
   border: 1px solid rgba(255, 248, 239, 0.6);
@@ -505,7 +569,6 @@ body {
   color: #7d2b16;
 }
 
-/* Kondisi pause: tombol play berubah jadi "mulai kembali" */
 .pad.is-paused .ctrl-play {
   background: linear-gradient(150deg, #ffc98c, #c9822f);
   color: var(--brown-950);
@@ -520,8 +583,9 @@ body {
   50%      { box-shadow: 0 0 0 12px rgba(255, 184, 119, 0.08), 0 14px 26px -10px rgba(45, 22, 9, 0.95); }
 }
 
-/* Kondisi belum selesai memuat */
-.pad:not(.is-ready) .pad-controls {
+.pad:not(.is-ready) .pad-controls,
+.pad:not(.is-ready) .pad-settings,
+.pad:not(.is-ready) .pad-volume {
   opacity: 0.45;
   pointer-events: none;
 }
@@ -571,34 +635,36 @@ body {
   }
 
   .pad {
-    padding: 20px 12px 18px;
+    padding: 18px 12px 16px;
     border-radius: 20px;
   }
 
   .pad-icon {
-    width: 50px;
-    height: 50px;
-    font-size: 1.25rem;
-    border-radius: 16px;
+    width: 48px;
+    height: 48px;
+    font-size: 1.2rem;
+    border-radius: 15px;
   }
 
-  .pad-title { font-size: 0.94rem; }
-  .pad-sub   { font-size: 0.65rem; }
+  .pad-title { font-size: 0.92rem; }
+  .pad-sub   { font-size: 0.6rem; }
 
-  .ctrl-play { width: 48px; height: 48px; font-size: 1rem; }
+  .mini-field {
+    padding: 3px 6px 3px 8px;
+    font-size: 0.56rem;
+    gap: 4px;
+  }
+  .mini-field input { width: 38px; font-size: 0.64rem; }
+
+  .ctrl-play { width: 46px; height: 46px; font-size: 1rem; }
   .ctrl-pause,
-  .ctrl-stop { width: 38px; height: 38px; font-size: 0.78rem; }
+  .ctrl-stop { width: 36px; height: 36px; font-size: 0.76rem; }
 
-  .pad-controls { height: 52px; gap: 7px; }
+  .pad-controls { height: 48px; gap: 7px; margin-top: 12px; }
+
+  .volume-value { min-width: 30px; font-size: 0.6rem; }
 
   .board-header { margin-bottom: 28px; }
-
-  .fade-field {
-    padding: 7px 10px 7px 12px;
-    gap: 7px;
-    font-size: 0.72rem;
-  }
-  .fade-field input { width: 62px; font-size: 0.82rem; }
 }
 
 @media (max-width: 380px) {

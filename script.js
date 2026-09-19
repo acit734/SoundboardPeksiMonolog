@@ -5,11 +5,14 @@
      (fetch → Blob → ArrayBuffer → AudioBuffer).
    • TIDAK memakai elemen <audio> sama sekali.
    • Semua sound di-loop (source.loop = true).
-   • Fade In / Fade Out dengan durasi (ms) yang bisa diatur
-     user melalui input di header.
+   • Setiap pad punya pengaturan sendiri:
+       - Fade In  (ms)     → input di kartu
+       - Fade Out (ms)     → input di kartu
+       - Volume   (0–100%) → slider di kartu
    • Suara bisa ditumpuk (stack) tanpa batas.
-   • Pause menyimpan posisi (loop-aware) + fade out, tombol play
-     berubah jadi "mulai kembali".
+   • Volume bisa diubah saat sedang berbunyi (real-time ramp).
+   • Pause menyimpan posisi (loop-aware), tombol play berubah
+     jadi "mulai kembali".
    • Stop menghentikan semua lapisan suara dengan fade out.
    ============================================================ */
 
@@ -31,24 +34,20 @@ const SOUNDS = [
 ];
 
 /* ------------------------------------------------------------
-   3. Helper baca input fade (ms) dari header
+   3. Helper
    ------------------------------------------------------------ */
 const FADE_MIN = 0;
 const FADE_MAX = 10000; // 10 detik
+const MIN_GAIN = 0.0001; // batas bawah untuk exponentialRamp
 
 function clampFade(value) {
   if (isNaN(value)) return 0;
   return Math.max(FADE_MIN, Math.min(FADE_MAX, value));
 }
 
-function readFadeIn() {
-  const el = document.getElementById("fadeInInput");
-  return clampFade(parseInt(el?.value, 10));
-}
-
-function readFadeOut() {
-  const el = document.getElementById("fadeOutInput");
-  return clampFade(parseInt(el?.value, 10));
+function clampVolume(value) {
+  if (isNaN(value)) return 100;
+  return Math.max(0, Math.min(100, value));
 }
 
 /* ------------------------------------------------------------
@@ -67,13 +66,21 @@ class SoundPad {
     this.state = "idle";         // idle | playing | paused
 
     this.refs = {
-      play:     element.querySelector(".ctrl-play"),
-      playIcon: element.querySelector(".ctrl-play i"),
-      pause:    element.querySelector(".ctrl-pause"),
-      stop:     element.querySelector(".ctrl-stop"),
-      badge:    element.querySelector(".pad-badge"),
-      sub:      element.querySelector(".pad-sub"),
+      play:        element.querySelector(".ctrl-play"),
+      playIcon:    element.querySelector(".ctrl-play i"),
+      pause:       element.querySelector(".ctrl-pause"),
+      stop:        element.querySelector(".ctrl-stop"),
+      badge:       element.querySelector(".pad-badge"),
+      sub:         element.querySelector(".pad-sub"),
+      fadeIn:      element.querySelector(".fade-in-input"),
+      fadeOut:     element.querySelector(".fade-out-input"),
+      volume:      element.querySelector(".volume-slider"),
+      volumeValue: element.querySelector(".volume-value"),
     };
+
+    // Volume awal (0..1)
+    this.volume = clampVolume(parseInt(this.refs.volume?.value, 10)) / 100;
+    this.#renderVolumeLabel();
 
     this.#bindUI();
     this.render();
@@ -104,11 +111,46 @@ class SoundPad {
     }
   }
 
+  /* ---------- Getter nilai input per-pad ---------- */
+  getFadeIn() {
+    return clampFade(parseInt(this.refs.fadeIn?.value, 10));
+  }
+
+  getFadeOut() {
+    return clampFade(parseInt(this.refs.fadeOut?.value, 10));
+  }
+
+  getVolume() {
+    return clampVolume(parseInt(this.refs.volume?.value, 10)) / 100;
+  }
+
   /* ---------- Event handler ---------- */
   #bindUI() {
     this.refs.play.addEventListener("click", () => this.handlePlay());
     this.refs.pause.addEventListener("click", () => this.handlePause());
     this.refs.stop.addEventListener("click", () => this.handleStop());
+
+    // Validasi input fade saat blur (biar rapi)
+    this.refs.fadeIn?.addEventListener("blur", () => {
+      const v = clampFade(parseInt(this.refs.fadeIn.value, 10));
+      this.refs.fadeIn.value = isNaN(v) ? 0 : v;
+    });
+    this.refs.fadeOut?.addEventListener("blur", () => {
+      const v = clampFade(parseInt(this.refs.fadeOut.value, 10));
+      this.refs.fadeOut.value = isNaN(v) ? 0 : v;
+    });
+
+    // Volume real-time
+    this.refs.volume?.addEventListener("input", () => {
+      this.volume = this.getVolume();
+      this.#renderVolumeLabel();
+      this.#applyVolumeRealtime();
+    });
+  }
+
+  #renderVolumeLabel() {
+    if (!this.refs.volumeValue) return;
+    this.refs.volumeValue.textContent = `${Math.round(this.volume * 100)}%`;
   }
 
   /* ---------- PLAY / STACK / RESUME ---------- */
@@ -120,7 +162,10 @@ class SoundPad {
 
     if (!this.buffer) return; // belum selesai dimuat
 
-    const fadeInMs = readFadeIn();
+    // Sinkronkan volume dari slider (kalau user baru menggeser)
+    this.volume = this.getVolume();
+
+    const fadeInMs = this.getFadeIn();
 
     // Kalau sedang pause → lanjutkan dari posisi terakhir (fade in)
     if (this.state === "paused") {
@@ -129,13 +174,13 @@ class SoundPad {
 
       this.setState("playing");
       snapshots.forEach((snap) =>
-        this.#startInstance(snap.offset, snap.gain, fadeInMs)
+        this.#startInstance(snap.offset, fadeInMs)
       );
       return;
     }
 
     // Idle atau sedang playing → selalu buat instance baru (STACK)
-    this.#startInstance(0, 1, fadeInMs);
+    this.#startInstance(0, fadeInMs);
     this.setState("playing");
   }
 
@@ -143,7 +188,7 @@ class SoundPad {
   handlePause() {
     if (this.state !== "playing") return;
 
-    const fadeOutMs = readFadeOut();
+    const fadeOutMs = this.getFadeOut();
     const snapshots = [];
     const duration = this.buffer?.duration || 0;
 
@@ -154,7 +199,7 @@ class SoundPad {
         ? ((elapsed % duration) + duration) % duration
         : 0;
 
-      snapshots.push({ offset: loopedOffset, gain: 1 });
+      snapshots.push({ offset: loopedOffset });
 
       // Fade out lalu hentikan source
       this.#fadeOutAndStop(inst, fadeOutMs);
@@ -167,7 +212,7 @@ class SoundPad {
 
   /* ---------- STOP (fade out) ---------- */
   handleStop() {
-    const fadeOutMs = readFadeOut();
+    const fadeOutMs = this.getFadeOut();
 
     this.instances.forEach((inst) => {
       this.#fadeOutAndStop(inst, fadeOutMs);
@@ -178,8 +223,28 @@ class SoundPad {
     this.setState("idle");
   }
 
+  /* ---------- Internal: ubah volume semua instance real-time ---------- */
+  #applyVolumeRealtime() {
+    if (this.instances.size === 0) return;
+
+    const now = audioCtx.currentTime;
+    const target = Math.max(this.volume, MIN_GAIN);
+
+    this.instances.forEach((inst) => {
+      try {
+        const current = Math.max(inst.gain.gain.value, MIN_GAIN);
+        inst.gain.gain.cancelScheduledValues(now);
+        inst.gain.gain.setValueAtTime(current, now);
+        // Ramp pendek supaya tidak "klik"
+        inst.gain.gain.exponentialRampToValueAtTime(target, now + 0.05);
+      } catch (_) {
+        /* abaikan */
+      }
+    });
+  }
+
   /* ---------- Internal: buat satu lapisan suara (loop + fade in) ---------- */
-  #startInstance(offset = 0, gainValue = 1, fadeInMs = 0) {
+  #startInstance(offset = 0, fadeInMs = 0) {
     if (!this.buffer) return;
 
     const source = audioCtx.createBufferSource();
@@ -188,11 +253,10 @@ class SoundPad {
 
     const gain = audioCtx.createGain();
     const now = audioCtx.currentTime;
-    const targetGain = Math.max(0.0001, gainValue);
+    const targetGain = Math.max(this.volume, MIN_GAIN);
 
     if (fadeInMs > 0) {
-      // Fade in halus dari nyaris 0 → target
-      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.setValueAtTime(MIN_GAIN, now);
       gain.gain.exponentialRampToValueAtTime(
         targetGain,
         now + fadeInMs / 1000
@@ -245,15 +309,18 @@ class SoundPad {
 
     try {
       instance.gain.gain.cancelScheduledValues(now);
-      instance.gain.gain.setValueAtTime(Math.max(currentGain, 0.0001), now);
+      instance.gain.gain.setValueAtTime(
+        Math.max(currentGain, MIN_GAIN),
+        now
+      );
 
       if (fadeOutMs > 0) {
         instance.gain.gain.exponentialRampToValueAtTime(
-          0.0001,
+          MIN_GAIN,
           now + fadeOutMs / 1000
         );
       } else {
-        instance.gain.gain.setValueAtTime(0.0001, now);
+        instance.gain.gain.setValueAtTime(MIN_GAIN, now);
       }
     } catch (_) {
       /* abaikan error scheduling */
@@ -319,6 +386,53 @@ function buildPad(config) {
     <h2 class="pad-title">${config.title}</h2>
     <p class="pad-sub">memuat…</p>
 
+    <!-- Fade In / Fade Out per-sound -->
+    <div class="pad-settings">
+      <label class="mini-field" title="Fade In (ms)">
+        <span>In</span>
+        <input
+          class="fade-in-input"
+          type="number"
+          value="500"
+          min="0"
+          max="10000"
+          step="50"
+          inputmode="numeric"
+        />
+        <em>ms</em>
+      </label>
+
+      <label class="mini-field" title="Fade Out (ms)">
+        <span>Out</span>
+        <input
+          class="fade-out-input"
+          type="number"
+          value="500"
+          min="0"
+          max="10000"
+          step="50"
+          inputmode="numeric"
+        />
+        <em>ms</em>
+      </label>
+    </div>
+
+    <!-- Volume per-sound -->
+    <div class="pad-volume">
+      <i class="fa-solid fa-volume-low"></i>
+      <input
+        class="volume-slider"
+        type="range"
+        min="0"
+        max="100"
+        value="100"
+        step="1"
+        aria-label="Volume ${config.title}"
+      />
+      <span class="volume-value">100%</span>
+    </div>
+
+    <!-- Kontrol play / pause / stop -->
     <div class="pad-controls">
       <button class="ctrl ctrl-play" type="button" title="Putar (loop)" aria-label="Putar ${config.title}">
         <i class="fa-solid fa-play"></i>
@@ -350,16 +464,6 @@ async function initSoundboard() {
 
   // Muat keempat Blob secara paralel
   await Promise.all(pads.map((pad) => pad.load()));
-
-  // Sanity check: pastikan input fade valid
-  ["fadeInInput", "fadeOutInput"].forEach((id) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener("blur", () => {
-      const v = clampFade(parseInt(el.value, 10));
-      el.value = isNaN(v) ? 0 : v;
-    });
-  });
 }
 
 document.addEventListener("DOMContentLoaded", initSoundboard);
