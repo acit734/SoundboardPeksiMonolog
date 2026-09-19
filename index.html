@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Soundboard Peksi Monolog</title>
+
+  <!-- Ikon gratis dari Font Awesome CDN -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===== Dekorasi latar ===== -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+  <div class="grain"></div>
+
+  <!-- ===== Konten utama ===== -->
+  <main class="board">
+    <header class="board-header">
+      <span class="chip">
+        <i class="fa-solid fa-repeat"></i> Local Blob Audio · Looping
+      </span>
+
+      <h1>Penjara Bayangan<span>Soundboard</span></h1>
+
+      <p>
+        Klik sekali untuk memutar (loop) · klik lagi untuk menumpuk suara ·
+        atur durasi <b>Fade In</b> &amp; <b>Fade Out</b> di bawah.
+      </p>
+
+      <!-- ===== Kontrol Fade global ===== -->
+      <div class="fade-controls" role="group" aria-label="Pengaturan fade">
+        <label class="fade-field" for="fadeInInput">
+          <i class="fa-solid fa-arrow-up-long"></i>
+          <span>Fade In</span>
+          <input
+            id="fadeInInput"
+            type="number"
+            value="500"
+            min="0"
+            max="10000"
+            step="50"
+            inputmode="numeric"
+          />
+          <em>ms</em>
+        </label>
+
+        <label class="fade-field" for="fadeOutInput">
+          <i class="fa-solid fa-arrow-down-long"></i>
+          <span>Fade Out</span>
+          <input
+            id="fadeOutInput"
+            type="number"
+            value="500"
+            min="0"
+            max="10000"
+            step="50"
+            inputmode="numeric"
+          />
+          <em>ms</em>
+        </label>
+      </div>
+    </header>
+
+    <!-- Grid pad akan di-generate oleh JavaScript -->
+    <section class="pad-grid" id="padGrid" aria-label="Papan suara"></section>
+
+    <footer class="board-footer">
+      <i class="fa-solid fa-circle-info"></i>
+      <span>
+        File suara diambil sebagai <b>Blob</b> dari <code>sounds/</code> ·
+        semua sound di-<b>loop</b> · jalankan lewat local server (bukan
+        <code>file://</code>).
+      </span>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
